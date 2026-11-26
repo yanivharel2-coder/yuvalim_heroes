@@ -1,4 +1,5 @@
-/* משחק זיכרון: 10 שלבים ברמת קושי עולה, שחקן אחד או שניים */
+/* משחק זיכרון: 10 שלבים ברמת קושי עולה, שחקן אחד או שניים.
+   במצב סיפור ראשי: Memory.storyRound(box, p, onDone) - p בין 0 (קל) ל-1 (קשה) */
 (function () {
   var GAP = 10;
 
@@ -52,7 +53,8 @@
     G.store.save(a);
   }
 
-  function play(container, players, lv, mini, onDone) {
+  /* story = true: סיבוב אחד בתוך הסיפור הראשי, בלי תפריטי שלבים ובלי חלון סיום */
+  function play(container, players, lv, mini, onDone, story) {
     container.innerHTML =
       '<section class="mem"><div class="scorebar"></div>' +
       '<div class="mem-area"><div class="mem-grid"></div></div></section>';
@@ -92,6 +94,7 @@
 
     function paintBar() {
       if (mini) { bar.innerHTML = '<div class="chip on">מצאו את הזוגות</div>'; return; }
+      if (story) { bar.innerHTML = '<div class="chip on">זוגות: ' + scores[0] + ' מתוך ' + total + '</div>'; return; }
       var lvBadge = '<div class="chip">שלב ' + (lv + 1) + ' מתוך ' + MEMORY_LEVELS.length + '</div>';
       var resetBtn = '<button class="btn small alt" id="memLevelsBtn">🎯 שלבים</button>';
       if (players === 1) {
@@ -110,8 +113,8 @@
 
     function finish() {
       G.sfx.win();
-      G.confetti(mini ? 40 : 90);
-      if (mini) { G.later(onDone, 1000); return; }
+      G.confetti(mini || story ? 40 : 90);
+      if (mini || story) { G.later(onDone, 1000); return; }
 
       var isLast = lv >= MEMORY_LEVELS.length - 1;
       var nextLv = isLast ? 0 : lv + 1;
@@ -207,6 +210,13 @@
         };
       });
     },
-    mini: function (box, onDone) { play(box, 1, 1, true, onDone); }
+    mini: function (box, onDone) { play(box, 1, 1, true, onDone); },
+
+    /* סיפור ראשי: p בין 0 ל-1 קובע את הקושי. 0 = שלב 1 (4 קלפים), 1 = שלב 10 (40 קלפים) */
+    storyRound: function (box, p, onDone) {
+      var q = Math.max(0, Math.min(1, +p || 0));
+      var lv = Math.min(MEMORY_LEVELS.length - 1, Math.floor(q * MEMORY_LEVELS.length));
+      play(box, 1, lv, false, onDone, true);
+    }
   };
 })();
