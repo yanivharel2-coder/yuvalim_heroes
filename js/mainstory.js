@@ -136,7 +136,17 @@
   var STORY_GAMES = ["letters", "rhyme", "numbers", "moreless", "memory", "odd", "opposites", "puzzle", "simon", "maze"];
   var lastKind = null;
 
-  function askStoryMiniGame(box, step, cb) {
+  /* קושי עולה לאורך כל הסיפור: 0 = השאלה הראשונה בשלב 1, 1 = השאלה האחרונה בשלב האחרון.
+     לפי זה נקבעים: מספר קלפי הזיכרון, מספר חלקי הפאזל, אורך רצף סיימון וגודל המבוך */
+  function storyProgress(step, stageIdx) {
+    var N = CONFIG.storySteps || 20;
+    var stagesCount = Math.max(1, ((CONFIG.mainStoryArt || {}).stages || []).length);
+    var total = Math.max(1, stagesCount * N - 1);
+    return Math.max(0, Math.min(1, ((stageIdx || 0) * N + step) / total));
+  }
+
+  function askStoryMiniGame(box, step, stageIdx, cb) {
+    var p = storyProgress(step, stageIdx);
     var kind;
     do { kind = G.pick(STORY_GAMES); } while (kind === lastKind);
     lastKind = kind;
@@ -146,10 +156,10 @@
     if (kind === "moreless")  return MoreLess.ask(box, step, cb);
     if (kind === "odd")       return Odd.ask(box, step, cb);
     if (kind === "opposites") return Opposites.ask(box, step, cb);
-    if (kind === "memory")    return Memory.storyRound ? Memory.storyRound(box, G.pick([5, 6, 7]), function () { cb(true); }) : Memory.mini(box, function () { cb(true); });
-    if (kind === "puzzle")    return Puzzle.storyHard ? Puzzle.storyHard(box, function () { cb(true); }) : Puzzle.mini(box, function () { cb(true); });
-    if (kind === "simon")     return Simon.story7 ? Simon.story7(box, cb) : Simon.mini(box, cb);
-    return Maze.storyRound ? Maze.storyRound(box, 11 + G.rand(7), function () { cb(true); }) : Maze.mini(box, function () { cb(true); });
+    if (kind === "memory")    return Memory.storyRound(box, p, function () { cb(true); });
+    if (kind === "puzzle")    return Puzzle.storyRound(box, p, function () { cb(true); });
+    if (kind === "simon")     return Simon.storyRound(box, p, cb);
+    return Maze.storyRound(box, p, function () { cb(true); });
   }
 
   function startStage(chosenPlayers, stageIdx, initialHelpers) {
@@ -442,7 +452,7 @@
     function nextStep() {
       updateHUD();
       var token = ++qToken;
-      askStoryMiniGame(qbox, step, function (ok) {
+      askStoryMiniGame(qbox, step, stageIdx, function (ok) {
         if (token !== qToken || busy) return;
         if (bonusPending) return handleBonusResult(ok);
         if (ok) {
@@ -459,5 +469,5 @@
     nextStep();
   }
 
-  window.MainStory = { start: selectMode };
+  window.MainStory = { start: selectMode, _progress: storyProgress };
 })();
