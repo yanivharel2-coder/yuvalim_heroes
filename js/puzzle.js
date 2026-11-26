@@ -1,5 +1,6 @@
 /* פאזל אמיתי: חלקים עם בליטות וחריצים שגוררים אל הלוח ונצמדים למקום הנכון.
-   קשה = הכי הרבה חלקים שנכנסים במסך, בינוני = בערך חצי. */
+   קשה = הכי הרבה חלקים שנכנסים במסך, בינוני = בערך חצי.
+   במצב סיפור ראשי: Puzzle.storyRound(box, p, onDone) - p בין 0 (6 חלקים) ל-1 (המקסימום שנכנס) */
 (function () {
   var SCENES = [
     { bg: ["#8fd3ff", "#d9f2ff"], items: [["☀️",.85,.18,140],["🏠",.3,.62,260],["🐄",.68,.72,200],["🌳",.9,.6,220],["🌼",.1,.88,100]] },
@@ -49,6 +50,7 @@
     return list[cursor % list.length];
   }
 
+  /* mode: "hard" | "medium" | מספר בין 0 ל-1 (סיפור ראשי: 0 = 6 חלקים, 1 = המקסימום) */
   function gridFor(bw, bh, mini, mode) {
     if (mini) return { c: 3, r: 2 };
     var MIN = CONFIG.minPuzzlePiece;
@@ -56,6 +58,20 @@
     var r = Math.max(2, Math.min(5, Math.floor(bh / MIN)));
     while (c * r > CONFIG.maxPuzzlePieces) { if (c >= r) c--; else r--; }
     if (mode === "hard") return { c: c, r: r };
+
+    if (typeof mode === "number") {
+      var maxN = c * r, minN = Math.min(6, maxN);
+      var want = Math.round(minN + Math.max(0, Math.min(1, mode)) * (maxN - minN));
+      var asp = bw / bh, pick = null;
+      for (var sc = 2; sc <= c; sc++) {
+        for (var sr = 2; sr <= r; sr++) {
+          var dn = Math.abs(sc * sr - want), da = Math.abs(sc / sr - asp);
+          if (!pick || dn < pick.dn || (dn === pick.dn && da < pick.da)) pick = { c: sc, r: sr, dn: dn, da: da };
+        }
+      }
+      return { c: pick.c, r: pick.r };
+    }
+
     var target = c * r / 2, best = null;
     for (var cc = 2; cc <= c; cc++) {
       for (var rr = 2; rr <= r; rr++) {
@@ -90,11 +106,13 @@
   }
 
   function play(container, mode, mini, onDone) {
+    var story = typeof mode === "number";   /* סיבוב בתוך הסיפור הראשי */
+    var short = mini || story;
     container.innerHTML =
       '<section class="puz"><div class="puz-bar">' +
-      '<div class="chip on">' + (mini ? "הרכיבו את התמונה" : (mode === "hard" ? "פאזל קשה" : "פאזל בינוני")) + '</div>' +
+      '<div class="chip on">' + (short ? "הרכיבו את התמונה" : (mode === "hard" ? "פאזל קשה" : "פאזל בינוני")) + '</div>' +
       '<button class="btn small alt" id="peek">👁️ הצצה</button>' +
-      (mini ? '' : '<button class="btn small alt" id="nextPic" aria-label="תמונה הבאה">🔄 תמונה אחרת</button>') +
+      (short ? '' : '<button class="btn small alt" id="nextPic" aria-label="תמונה הבאה">🔄 תמונה אחרת</button>') +
       '</div><div class="jig-area"></div></section>';
     var area = container.querySelector(".jig-area");
     var rect0 = area.getBoundingClientRect();
@@ -218,8 +236,8 @@
         peekEl.style.display = "none";
         ghost.style.opacity = 0;
         G.sfx.win();
-        G.confetti(mini ? 40 : 90);
-        if (mini) { G.later(onDone, 1400); return; }
+        G.confetti(short ? 40 : 90);
+        if (short) { G.later(onDone, 1400); return; }
         G.later(function () {
           G.dialog({
             art: '<span style="font-size:90px">🧩</span>',
@@ -296,6 +314,12 @@
         b.onclick = function () { play(container, b.dataset.m, false); };
       });
     },
-    mini: function (box, onDone) { play(box, "medium", true, onDone); }
+    mini: function (box, onDone) { play(box, "medium", true, onDone); },
+
+    /* סיפור ראשי: p בין 0 ל-1 קובע כמה חלקים. 0 = 6 חלקים, 1 = המקסימום שנכנס במסך */
+    storyRound: function (box, p, onDone) {
+      var q = Math.max(0, Math.min(1, +p || 0));
+      play(box, q, false, onDone);
+    }
   };
 })();
