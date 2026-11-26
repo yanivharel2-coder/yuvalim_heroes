@@ -556,9 +556,9 @@ body {
   position: relative; flex: 1; min-height: 0; border: 5px solid var(--ink); border-radius: 28px;
   overflow: hidden; background: #0e132b; box-shadow: 0 8px 0 var(--ink);
 }
-.sb-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sb-img { width: 100%; height: 100%; object-fit: contain; display: block; background: #0e132b; }
 .sb-img.ken-burns { animation: kenBurns 4s ease-out forwards; }
-@keyframes kenBurns { from { transform: scale(1); } to { transform: scale(1.07); } }
+@keyframes kenBurns { from { transform: scale(1); } to { transform: scale(1.03); } }
 .sb-caption {
   position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
   width: min(92%, 780px); text-align: center;
@@ -606,6 +606,24 @@ body {
   border-radius: 50%; object-fit: cover; border: 3px solid var(--ink);
 }
 .ms-foe-mini .ms-mini-villain {
-  height: 100%; width: auto; max-width: 150px; object-fit: cover;
+  height: 100%; width: auto; max-width: 180px; object-fit: contain; background: #0e132b;
   border-radius: 16px; border: 4px solid var(--ink);
+}
+
+.overlay.hero-cutscene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(9, 11, 29, 0.96);
+}
+.hero-cutscene .hero-media {
+  max-width: 96vw;
+  max-height: 78vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 20px;
+  border: 4px solid var(--sun);
+  background: #000;
 }

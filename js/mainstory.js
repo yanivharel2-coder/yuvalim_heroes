@@ -289,18 +289,31 @@
 
       if (fh.type === "video") {
         var vid = ov.querySelector("video");
+        vid.controls = true;
         vid.muted = !!G.muted;
         vid.onended = finish;
-        vid.onerror = function () { vid.hidden = true; fbStage.hidden = false; G.later(finish, 3500); };
+        vid.onerror = function () {
+          vid.style.display = "none";
+          fbStage.hidden = false;
+          G.later(finish, 3500);
+        };
+        vid.addEventListener("loadeddata", function () {
+          vid.style.display = "block";
+          fbStage.hidden = true;
+        }, { once: true });
         try { vid.load(); } catch (e) {}
         var playPromise = vid.play();
         if (playPromise && playPromise.catch) {
           playPromise.catch(function () {
             vid.muted = true;
-            vid.play().catch(function () { vid.hidden = true; fbStage.hidden = false; G.later(finish, 3500); });
+            vid.play().catch(function () {
+              vid.style.display = "none";
+              fbStage.hidden = false;
+              G.later(finish, 3500);
+            });
           });
         }
-        G.later(finish, 11000);
+        G.later(finish, 15000);
       } else {
         var img = ov.querySelector("img");
         img.onerror = function () { img.hidden = true; fbStage.hidden = false; };
