@@ -82,14 +82,14 @@ window.CONFIG = {
     ]
   },
 
-  familyHeroes: [
-    { id: "shai",  name: "שי",   title: "הילד הג׳ינג׳י שמטפס על קירות", type: "video", src: "family/shai.mp4",  icon: "🕷️" },
-    { id: "emma",  name: "אמה",  title: "הלוחמת בורוד",                 type: "gif",   src: "family/emma.gif",  icon: "💖" },
-    { id: "omer",  name: "עומר", title: "נגן הגיטרה הטוב בעולם",         type: "video", src: "family/omer.mp4",  icon: "🎸" },
-    { id: "itay",  name: "איתי", title: "המתופף המשוגע",                type: "video", src: "family/itay.mp4",  icon: "🥁" },
-    { id: "dana",  name: "דנה",  title: "המלכה הלוחמת",                 type: "video", src: "family/dana.mp4",  icon: "👑" },
-    { id: "yaniv", name: "יניב", title: "מלך עולם הקרח",                type: "video", src: "family/yaniv.mp4", icon: "❄️" }
-  ],
+familyHeroes: [
+  { id: "ari",   name: "ארי",   icon: "🦁", title: "גיבור על", type: "video", src: "family/ari.mp4" },
+  { id: "ariel", name: "אריאל", icon: "⚡", title: "גיבור על", type: "video", src: "family/ariel.mp4" },
+  { id: "emma",  name: "אמה",   icon: "🌟", title: "גיבורת על", type: "video", src: "family/emma.mp4" },
+  { id: "ilan",  name: "אילן",  icon: "🔥", title: "גיבור על", type: "video", src: "family/ilan.mp4" },
+  { id: "shai",  name: "שי",    icon: "🚀", title: "גיבור על", type: "video", src: "family/shai.mp4" },
+  { id: "tia",   name: "טיה",   icon: "💫", title: "גיבורת על", type: "video", src: "family/tia.mp4" }
+],
 
   heroes: [
     { name: "הגיבור האדום", img: null, kind: "red" },
