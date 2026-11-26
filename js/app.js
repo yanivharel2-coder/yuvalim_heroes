@@ -20,7 +20,7 @@
   };
 
   var TITLES = {
-    home: "", letters: "אותיות", numbers: "מספרים", memory: "משחק זיכרון", puzzle: "פאזל", mix: "מיקס",
+    home: "", mainstory: "סיפור ראשי", letters: "אותיות", numbers: "מספרים", memory: "משחק זיכרון", puzzle: "פאזל", mix: "מיקס",
     trace: "מעקב אחרי אות ומספר", build: "הרכבת מילה", rhyme: "חריזה", addsub: "חיבור וחיסור",
     pattern: "המשך את התבנית", moreless: "יותר או פחות", shapes: "צורות בתמונה",
     odd: "מה לא שייך", opposites: "הפכים", simon: "סיימון", maze: "מבוך באצבע"
@@ -74,6 +74,7 @@
         '<div class="hero-row">' + CONFIG.heroes.map(G.charHTML).join("") + G.villainHTML() + '</div>' +
         '<h1 class="title">משחקי הגיבורים</h1>' +
         '<div class="sec"><div class="tiles">' +
+          tileHTML({ go: "mainstory", ico: "🏰", lbl: "סיפור ראשי", bg: "linear-gradient(135deg,#ef4136,#ff8a65 50%,#ffd23f)" }) +
           tileHTML({ go: "mix", ico: "🎲", lbl: "מיקס: כל המשחקים", bg: "linear-gradient(135deg,#ffd23f,#ff8a65 35%,#b9a0ff 70%,#52e0cf)" }) +
         '</div></div>' +
         SECTIONS.map(function (s) {
@@ -87,6 +88,7 @@
 
   var screens = {
     home: home,
+    mainstory: function () { MainStory.start(); },
     mix:    function () { G.story("mix", mixAsk); },
     memory: function () { Memory.start(G.screen); },
     puzzle: function () { Puzzle.start(G.screen); },
