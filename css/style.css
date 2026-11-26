@@ -12,6 +12,10 @@
   font-family: "Rubik", "Heebo", "Assistant", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+/* חשוב: גורם לתכונת hidden לעבוד גם על אלמנטים שיש להם display בעיצוב שלהם */
+[hidden] { display: none !important; }
+
 html, body { height: 100%; margin: 0; }
 body {
   color: var(--ink);
@@ -391,6 +395,7 @@ body {
   box-shadow: 0 0 0 var(--ink);
 }
 .helper-thumb {
+  position: relative;
   width: clamp(32px, 5.2vmin, 46px);
   height: clamp(32px, 5.2vmin, 46px);
   border-radius: 50%;
@@ -409,6 +414,14 @@ body {
 .helper-name {
   font-weight: 800;
   font-size: clamp(14px, 2.3vmin, 19px);
+}
+.thumb-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: clamp(20px, 3.4vmin, 30px);
+  background: #fff;
 }
 
 /* באנר ומסגרת שאלת בונוס */
@@ -431,17 +444,24 @@ body {
   padding: 8px;
 }
 
-/* מסך מלא לסרטון עזרת גיבור משפחה */
+/* מסך מלא לסרטון עזרת גיבור משפחה (הכללים הכפולים אוחדו כאן) */
 .overlay.hero-cutscene {
-  background: #090b1d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 0;
   z-index: 90;
+  background: rgba(9, 11, 29, 0.96);
 }
 .hero-cutscene .hero-media {
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
+  max-width: 96vw;
+  max-height: 78vh;
+  width: auto;
+  height: auto;
   object-fit: contain;
+  border-radius: 20px;
+  border: 4px solid var(--sun);
   background: #000;
 }
 .hero-caption {
@@ -475,29 +495,17 @@ body {
   z-index: 95;
 }
 
-
-.helper-thumb {
-  position: relative;
-}
-.thumb-fallback {
+/* מסך הגיבור החלופי (אימוג׳י) מופיע רק אם הסרטון נכשל, ולעולם לא דוחס את הסרטון */
+.hero-fallback-stage {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  font-size: clamp(20px, 3.4vmin, 30px);
-  background: #fff;
-}
-.hero-fallback-stage {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
 }
 .hero-fallback-ico {
   font-size: clamp(110px, 28vmin, 220px);
   animation: pop 0.6s infinite alternate;
 }
-
 
 /* רשת בחירת שלבים (זיכרון ומבוך) */
 .level-grid {
@@ -608,22 +616,4 @@ body {
 .ms-foe-mini .ms-mini-villain {
   height: 100%; width: auto; max-width: 180px; object-fit: contain; background: #0e132b;
   border-radius: 16px; border: 4px solid var(--ink);
-}
-
-.overlay.hero-cutscene {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: rgba(9, 11, 29, 0.96);
-}
-.hero-cutscene .hero-media {
-  max-width: 96vw;
-  max-height: 78vh;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  border-radius: 20px;
-  border: 4px solid var(--sun);
-  background: #000;
 }
