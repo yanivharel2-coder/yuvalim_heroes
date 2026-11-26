@@ -1,4 +1,5 @@
-/* משחקי אינטראקציה: מעקב אחרי אות ומספר, סיימון, מבוך באצבע */
+/* משחקי אינטראקציה: מעקב אחרי אות ומספר, סיימון, מבוך באצבע.
+   במצב סיפור ראשי: Simon.storyRound / Maze.storyRound(box, p, ...) - p בין 0 (קל) ל-1 (קשה) */
 (function () {
 
   /* ===================== מעקב אחרי אות ומספר ===================== */
@@ -104,7 +105,8 @@
   /* ===================== סיימון ===================== */
   var PADS = [["#ef4136", "#ff9a8f", 262], ["#2f6fed", "#8fb4ff", 330], ["#2fbf71", "#9bf0c0", 392], ["#ffd23f", "#fff0a0", 523]];
 
-  function simon(container, mini, onDone) {
+  /* mini = גרסה קצרה (רצף אחד). fixedLen = אורך רצף קבוע (סיפור ראשי: 3 עד 7) */
+  function simon(container, mini, onDone, fixedLen) {
     container.innerHTML =
       '<section class="simon"><div class="sim-round"></div><div class="sim-status"></div><div class="sim-pads">' +
       PADS.map(function (c, i) {
@@ -113,7 +115,10 @@
     var st = container.querySelector(".sim-status"), rd = container.querySelector(".sim-round");
     var pads = container.querySelectorAll(".pad");
     var seq = [], idx = 0, busy = true;
-    var startLen = mini ? 3 : 2, maxLen = mini ? 3 : 6, len = startLen;
+    var fixed = typeof fixedLen === "number";
+    var startLen = fixed ? fixedLen : (mini ? 3 : 2);
+    var maxLen = fixed ? fixedLen : (mini ? 3 : 6);
+    var len = startLen;
     container._simon = { seq: function () { return seq; }, busy: function () { return busy; } };
 
     function light(i, ms) {
@@ -169,7 +174,13 @@
   }
   window.Simon = {
     start: function (container) { simon(container, false); },
-    mini: function (box, cb) { simon(box, true, cb); }
+    mini: function (box, cb) { simon(box, true, cb); },
+
+    /* סיפור ראשי: אורך הרצף עולה עם p. 0 = 3 צבעים, 1 = 7 צבעים */
+    storyRound: function (box, p, cb) {
+      var q = Math.max(0, Math.min(1, +p || 0));
+      simon(box, true, cb, 3 + Math.round(q * 4));
+    }
   };
 
   /* ===================== מבוך באצבע (20 שלבים ברמת קושי עולה) ===================== */
@@ -216,7 +227,7 @@
       else if (n[2] === "d") Bw[r][c] = false;
       else if (n[2] === "l") Rw[r][c - 1] = false;
       else Rw[r][c] = false;
-      vis[n[0]][n[1]] = true; stack.push([n[0]][n[1]] ? [n[0], n[1]] : [n[0], n[1]]);
+      vis[n[0]][n[1]] = true; stack.push([n[0], n[1]]);
     }
     return { R: Rw, B: Bw };
   }
@@ -241,12 +252,14 @@
     });
   }
 
-  function maze(container, lv, mini, onDone) {
+  /* mini = מבוך קטן קבוע (מיקס). story = סיבוב בתוך הסיפור הראשי: בגודל של השלב lv, בלי כפתורים ובלי חלון סיום */
+  function maze(container, lv, mini, onDone, story) {
     var safeLv = Math.max(0, Math.min(lv, LEVELS.length - 1));
+    var short = mini || story;
     var dims = mini ? LEVELS[0] : LEVELS[safeLv];
     container.innerHTML =
-      '<section class="maze"><div class="puz-bar"><div class="chip on">' + (mini ? "הובילו אל הכוכב" : "מבוך " + (safeLv + 1) + " מתוך " + LEVELS.length) + '</div>' +
-      (mini ? "" : '<button class="btn small alt" id="mzNew">🔄 מבוך חדש</button><button class="btn small alt" id="mzLevels">🎯 שלבים</button>') + '</div>' +
+      '<section class="maze"><div class="puz-bar"><div class="chip on">' + (short ? "הובילו אל הכוכב" : "מבוך " + (safeLv + 1) + " מתוך " + LEVELS.length) + '</div>' +
+      (short ? "" : '<button class="btn small alt" id="mzNew">🔄 מבוך חדש</button><button class="btn small alt" id="mzLevels">🎯 שלבים</button>') + '</div>' +
       '<div class="maze-area"><canvas class="maze-cv"></canvas></div></section>';
     var area = container.querySelector(".maze-area"), cv = container.querySelector("canvas");
     var rc = area.getBoundingClientRect();
@@ -254,12 +267,20 @@
     var cols = portrait ? dims[1] : dims[0];
     var rows = portrait ? dims[0] : dims[1];
 
-    /* התאמת גודל תא לטאבלט כדי שגם שלב 20 יהיה נוח לגרירה באצבע */
-    var minCell = 30;
-    var cs = Math.floor(Math.min((rc.width - 12) / cols, (rc.height - 12) / rows, 120));
+    /* התאמת גודל תא לטאבלט: מקטינים רק את הממד שמגביל, כדי שהמבוך יישאר גדול ככל האפשר.
+       בסיפור הראשי האזור נמוך יותר, ולכן התא המינימלי גדול יותר (נוח לאצבע) */
+    var minCell = story ? 44 : 30;
+    function fitCell() {
+      return Math.floor(Math.min((rc.width - 12) / cols, (rc.height - 12) / rows, 120));
+    }
+    var cs = fitCell();
     while (cs < minCell && (cols > 4 || rows > 3)) {
-      if (cols >= rows && cols > 4) cols--; else if (rows > 3) rows--;
-      cs = Math.floor(Math.min((rc.width - 12) / cols, (rc.height - 12) / rows, 120));
+      var csW = (rc.width - 12) / cols, csH = (rc.height - 12) / rows;
+      if (csH <= csW && rows > 3) rows--;
+      else if (cols > 4) cols--;
+      else if (rows > 3) rows--;
+      else break;
+      cs = fitCell();
     }
     cs = Math.max(cs, 28);
     var Wd = cols * cs, Ht = rows * cs, dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -334,8 +355,8 @@
       return [(e.clientX - r.left) * Wd / r.width, (e.clientY - r.top) * Ht / r.height];
     }
     function win() {
-      won = true; G.sfx.win(); G.confetti(mini ? 30 : 85);
-      if (mini) { G.later(function () { onDone(true); }, 1000); return; }
+      won = true; G.sfx.win(); G.confetti(short ? 30 : 85);
+      if (short) { G.later(function () { onDone(true); }, 1000); return; }
       var last = safeLv >= LEVELS.length - 1;
       var next = last ? 0 : safeLv + 1;
       var a = G.store.load(); a.mazeLevel = next; G.store.save(a);
@@ -384,6 +405,13 @@
       var lv = G.store.load().mazeLevel || 0;
       maze(container, lv % LEVELS.length, false);
     },
-    mini: function (box, cb) { maze(box, 0, true, cb); }
+    mini: function (box, cb) { maze(box, 0, true, cb); },
+
+    /* סיפור ראשי: p בין 0 ל-1. 0 = מבוך 1 (קטן), 1 = מבוך 18 (גדול ומפותל) */
+    storyRound: function (box, p, onDone) {
+      var q = Math.max(0, Math.min(1, +p || 0));
+      var lv = Math.round(q * (LEVELS.length - 3));
+      maze(box, lv, false, onDone, true);
+    }
   };
 })();
