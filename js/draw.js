@@ -172,11 +172,9 @@
   }
   var PASS_SHAPE = 0.78, PASS_COLOR = 0.5;
 
-  var bags = { easy: [], hard: [] };
   function nextPic(level) {
-    var k = level === "hard" ? "hard" : "easy";
-    if (!bags[k].length) bags[k] = G.shuffle(k === "hard" ? HARD : PICS);
-    return bags[k].pop();
+    var hard = level === "hard", list = hard ? HARD : PICS;
+    return G.deck(hard ? "drawhard" : "draweasy", list, function (x) { return list.indexOf(x); });
   }
 
   function ask(box, step, cb, level) {
