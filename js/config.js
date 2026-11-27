@@ -5,6 +5,7 @@ window.CONFIG = {
     "images/sonic-tails.jpg",
     "images/bluey.jpg",
     "images/ice-age.jpg",
+    "images/puzzles/user01.jpg"
   ],
   memoryImages: [
     "images/memory/01.png","images/memory/02.png","images/memory/03.png","images/memory/04.png",
