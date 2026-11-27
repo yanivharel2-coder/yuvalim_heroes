@@ -32,48 +32,17 @@
     }, { once: true });
   }
 
+  var level = "easy";
+
   function selectMode() {
     G.screen.innerHTML =
-      '<section class="menu"><h2>סיפור ראשי: מצילים את החיות! 🐾</h2><div class="menu-btns">' +
-      '<button class="btn big" id="msSingle">🦸 שחקן יחיד</button>' +
-      '<button class="btn big alt" id="msTeam">🦸‍♂️🦸‍♀️ עבודת צוות</button></div></section>';
-    G.screen.querySelector("#msSingle").onclick = function () { selectPlayers("single"); };
-    G.screen.querySelector("#msTeam").onclick = function () { selectPlayers("team"); };
-  }
-
-  function selectPlayers(mode) {
-    var players = CONFIG.mainStoryPlayers || [], selected = {};
-    G.screen.innerHTML =
-      '<section class="ms-select"><h2>' + (mode === "single" ? "בחרו גיבור אחד" : "בחרו את גיבורי הצוות") + '</h2>' +
-      '<div class="ms-grid">' + players.map(function (p) {
-        return '<button type="button" class="ms-card" data-id="' + p.id + '"><div class="ms-avatar"><img alt="' + p.name + '" data-pid="' + p.id + '"><span class="ms-ico-fb">' + p.icon + '</span></div><div class="ms-name">' + p.name + '</div></button>';
-      }).join("") + '</div><div class="menu-btns">' +
-      (mode === "team" ? '<button type="button" class="btn alt" id="msSelectAll">✨ בחר את כולם</button>' : '') +
-      '<button type="button" class="btn big" id="msStartStory" disabled>התחילו את הסיפור! ▶️</button></div></section>';
-
-    players.forEach(function (p) {
-      var img = G.screen.querySelector('img[data-pid="' + p.id + '"]');
-      if (img) { img.onload = function () { img.classList.add("ready"); }; loadPlayerPoster(p, img); }
+      '<section class="menu"><h2>סיפור ראשי: מצילים את החיות!</h2><h3 class="ms-sub">בחרו רמה</h3><div class="menu-btns">' +
+      '<button class="btn big" id="msEasy">🟢 קלה</button>' +
+      '<button class="btn big alt" id="msMed">🟡 בינונית</button>' +
+      '<button class="btn big alt" id="msHard">🔴 קשה</button></div></section>';
+    [["#msEasy", "easy"], ["#msMed", "medium"], ["#msHard", "hard"]].forEach(function (x) {
+      G.screen.querySelector(x[0]).onclick = function () { level = x[1]; playIntroStoryboard((CONFIG.mainStoryPlayers || []).slice()); };
     });
-
-    var startBtn = G.screen.querySelector("#msStartStory");
-    function refreshCards() {
-      var count = 0;
-      G.screen.querySelectorAll(".ms-card").forEach(function (card) {
-        var on = !!selected[card.dataset.id]; card.classList.toggle("on", on); if (on) count++;
-      });
-      startBtn.disabled = count === 0;
-    }
-    G.screen.querySelectorAll(".ms-card").forEach(function (card) {
-      card.onclick = function () {
-        var id = card.dataset.id;
-        if (mode === "single") { selected = {}; selected[id] = true; } else { selected[id] = !selected[id]; }
-        refreshCards();
-      };
-    });
-    var allBtn = G.screen.querySelector("#msSelectAll");
-    if (allBtn) allBtn.onclick = function () { players.forEach(function (p) { selected[p.id] = true; }); refreshCards(); };
-    startBtn.onclick = function () { var chosen = players.filter(function (p) { return selected[p.id]; }); if (chosen.length) playIntroStoryboard(chosen); };
   }
 
   function playIntroStoryboard(chosenPlayers) {
@@ -87,7 +56,6 @@
           '<div class="sb-controls"><button type="button" class="btn small alt" id="sbSkip">דלג למשחק ⏭️</button><span class="sb-dots">' + (idx + 1) + ' / ' + (slides.length + 1) + '</span><button type="button" class="btn small" id="sbNext">הבא ⬅️</button></div></section>';
         G.screen.querySelector("#sbNext").onclick = function () { idx++; renderSlide(); };
         G.screen.querySelector("#sbSkip").onclick = function () { startStage(chosenPlayers, 0, []); };
-        autoTimer = G.later(function () { idx++; renderSlide(); }, 3600);
       } else {
         G.screen.innerHTML =
           '<section class="sb-stage"><div class="sb-frame"><img class="sb-img" src="' + G.urlOf(art.heroHill) + '" alt="">' +
@@ -123,17 +91,18 @@
           else renderSlide();
         };
         G.screen.querySelector("#sbSkip").onclick = function () { startStage(chosenPlayers, stageIdx, carriedHelpers); };
-        autoTimer = G.later(function () {
-          idx++;
-          if (idx >= slides.length) startStage(chosenPlayers, stageIdx, carriedHelpers);
-          else renderSlide();
-        }, 3800);
       }
     }
     renderSlide();
   }
 
-  var STORY_GAMES = ["letters", "rhyme", "numbers", "moreless", "memory", "odd", "opposites", "puzzle", "simon", "maze"];
+  /* קלה: כל המשחקים חוץ מחיבור/חיסור והרכבת מילה. בינונית: מוסיפה אותם. קשה: רק משחקים קשים */
+  var EASY_GAMES = ["letters", "rhyme", "numbers", "moreless", "memory", "odd", "opposites", "puzzle", "simon", "maze", "draw"];
+  var LEVEL_GAMES = {
+    easy: EASY_GAMES,
+    medium: EASY_GAMES.concat(["addsub", "build"]),
+    hard: ["muldiv", "draw", "build", "memory", "puzzle", "simon", "maze"]
+  };
   var lastKind = null;
 
   /* קושי עולה לאורך כל הסיפור: 0 = השאלה הראשונה בשלב 1, 1 = השאלה האחרונה בשלב האחרון.
@@ -146,9 +115,11 @@
   }
 
   function askStoryMiniGame(box, step, stageIdx, cb) {
-    var p = storyProgress(step, stageIdx);
-    var kind;
-    do { kind = G.pick(STORY_GAMES); } while (kind === lastKind);
+    var hard = level === "hard";
+    var p = hard ? 1 : storyProgress(step, stageIdx);
+    if (hard) step = Math.max(step, (CONFIG.storySteps || 20) - 1);
+    var kind, games = LEVEL_GAMES[level] || EASY_GAMES;
+    do { kind = G.pick(games); } while (kind === lastKind && games.length > 1);
     lastKind = kind;
     if (kind === "letters")   return Letters.ask(box, step, cb);
     if (kind === "rhyme")     return Rhyme.ask(box, step, cb);
@@ -156,6 +127,10 @@
     if (kind === "moreless")  return MoreLess.ask(box, step, cb);
     if (kind === "odd")       return Odd.ask(box, step, cb);
     if (kind === "opposites") return Opposites.ask(box, step, cb);
+    if (kind === "draw")      return Draw.ask(box, step, cb, level);
+    if (kind === "addsub")    return AddSub.ask(box, step, cb);
+    if (kind === "build")     return Build.ask(box, step, cb, level);
+    if (kind === "muldiv")    return MulDiv.ask(box, step, cb);
     if (kind === "memory")    return Memory.storyRound(box, p, function () { cb(true); });
     if (kind === "puzzle")    return Puzzle.storyRound(box, p, function () { cb(true); });
     if (kind === "simon")     return Simon.storyRound(box, p, cb);
@@ -452,7 +427,7 @@
     function nextStep() {
       updateHUD();
       var token = ++qToken;
-      askStoryMiniGame(qbox, step, stageIdx, function (ok) {
+      askStoryMiniGame(qbox, step, stageIdx, function (ok, meta) {
         if (token !== qToken || busy) return;
         if (bonusPending) return handleBonusResult(ok);
         if (ok) {
@@ -461,6 +436,7 @@
           hearts = Math.max(0, hearts - 1);
           renderHearts();
           if (hearts <= 0) showLoseScreen();
+          else if (meta && meta.advanceOnFail) advanceNormalStep();
           else nextStep();
         }
       });

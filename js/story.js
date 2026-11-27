@@ -334,7 +334,7 @@
       var token = ++qToken;
       var currentAsk = (st.bonusPending && G.mixAsk) ? G.mixAsk : askFn;
 
-      currentAsk(qbox, st.step, function (ok) {
+      currentAsk(qbox, st.step, function (ok, meta) {
         if (token !== qToken || busy) return;
 
         if (st.bonusPending) {
@@ -349,6 +349,8 @@
           renderHearts();
           if (st.hearts <= 0) {
             failStage();
+          } else if (meta && meta.advanceOnFail) {
+            advanceNormalStep();
           } else {
             next();
           }

@@ -12,18 +12,20 @@
     build:     Build.ask,
     rhyme:     Rhyme.ask,
     addsub:    AddSub.ask,
+    muldiv:    MulDiv.ask,
     pattern:   Pattern.ask,
     moreless:  MoreLess.ask,
     shapes:    Shapes.ask,
     odd:       Odd.ask,
-    opposites: Opposites.ask
+    opposites: Opposites.ask,
+    draw:      Draw.ask
   };
 
   var TITLES = {
     home: "", mainstory: "סיפור ראשי", letters: "אותיות", numbers: "מספרים", memory: "משחק זיכרון", puzzle: "פאזל", mix: "מיקס",
-    trace: "מעקב אחרי אות ומספר", build: "הרכבת מילה", rhyme: "חריזה", addsub: "חיבור וחיסור",
+    trace: "מעקב אחרי אות ומספר", build: "הרכבת מילה", rhyme: "חריזה", addsub: "חיבור וחיסור", muldiv: "כפל וחילוק",
     pattern: "המשך את התבנית", moreless: "יותר או פחות", shapes: "צורות בתמונה",
-    odd: "מה לא שייך", opposites: "הפכים", simon: "סיימון", maze: "מבוך באצבע"
+    odd: "מה לא שייך", opposites: "הפכים", draw: "ציורים", simon: "סיימון", maze: "מבוך באצבע"
   };
 
   /* מיקס: כל המשחקים. זיכרון, פאזל, סיימון ומבוך מופיעים כגרסאות קצרות */
@@ -50,6 +52,7 @@
     { title: "חשבון וצורות", tiles: [
       { go: "numbers",  ico: "123", lbl: "מספרים",           bg: "#ff8a65" },
       { go: "addsub",   ico: "➕",  lbl: "חיבור וחיסור",      bg: "#ffab91" },
+      { go: "muldiv",   ico: "✖️",  lbl: "כפל וחילוק",       bg: "#ffa07a" },
       { go: "pattern",  ico: "🔴🔵", lbl: "המשך את התבנית",   bg: "#ffcc80" },
       { go: "moreless", ico: "⚖️",  lbl: "יותר או פחות",     bg: "#f48fb1" },
       { go: "shapes",   ico: "🔺",  lbl: "צורות בתמונה",     bg: "#ef9a9a" } ] },
@@ -57,7 +60,8 @@
       { go: "odd",       ico: "🤔", lbl: "מה לא שייך",  bg: "#52e0cf" },
       { go: "opposites", ico: "↔️", lbl: "הפכים",        bg: "#80deea" },
       { go: "memory",    ico: "🃏", lbl: "משחק זיכרון", bg: "#a5d6a7" },
-      { go: "puzzle",    ico: "🧩", lbl: "פאזל",         bg: "#b9a0ff" } ] },
+      { go: "puzzle",    ico: "🧩", lbl: "פאזל",         bg: "#b9a0ff" },
+      { go: "draw",      ico: "🎨", lbl: "ציורים",       bg: "#ffab76" } ] },
     { title: "משחקי כיף", tiles: [
       { go: "simon", ico: "🎹", lbl: "סיימון",       bg: "#ce93d8" },
       { go: "maze",  ico: "🏁", lbl: "מבוך באצבע",   bg: "#90caf9" } ] }

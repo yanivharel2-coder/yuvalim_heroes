@@ -38,14 +38,27 @@
     });
   }
 
+  /* רמה קשה: מילים של 4 עד 6 אותיות (מרשימת ההרכבה ומרשימת האותיות) */
+  function hardWords() {
+    var all = D.build.slice();
+    D.letters.forEach(function (L) { L.w.forEach(function (w) { all.push(w); }); });
+    var seen = {};
+    return all.filter(function (w) {
+      var n = w[0].length;
+      if (n < 4 || n > 6 || seen[w[0]]) return false;
+      seen[w[0]] = 1; return true;
+    });
+  }
+
   window.Build = {
-    ask: function (box, step, cb) {
-      var list = D.build.filter(function (w) { return step < 8 ? w[0].length === 2 : true; });
+    ask: function (box, step, cb, level) {
+      var hard = level === "hard";
+      var list = hard ? hardWords() : D.build.filter(function (w) { return step < 8 ? w[0].length === 2 : true; });
       var item = fresh("build", list, function (x) { return x[0]; });
       var chars = normalize(item[0]);
       var baseSet = chars.map(function (c) { return BASE[c] || c; });
       var pool = D.letters.map(function (L) { return L.l; }).filter(function (l) { return baseSet.indexOf(l) < 0; });
-      var tiles = G.shuffle(chars.concat(G.shuffle(pool).slice(0, 2)));
+      var tiles = G.shuffle(chars.concat(G.shuffle(pool).slice(0, hard ? 3 : 2)));
 
       box.innerHTML =
         '<div class="q">' +
@@ -79,6 +92,26 @@
           }
         };
       });
+    }
+  };
+
+  /* ===== כפל וחילוק (מספרים עד 10) ===== */
+  window.MulDiv = {
+    ask: function (box, step, cb) {
+      var mul = Math.random() < 0.5, a = 2 + G.rand(9), b = 2 + G.rand(9), prod = a * b, res, text;
+      if (mul) { res = prod; text = a + " × " + b + " = ?"; }
+      else { res = b; text = prod + " ÷ " + a + " = ?"; }
+      var pool = [];
+      var cand = mul ? [prod + a, prod - a, prod + b, prod - b, (a + 1) * b, a * (b + 1), (a - 1) * b, a * (b - 1)] : [b + 1, b - 1, b + 2, b - 2, a, b * 2, prod - b];
+      cand.forEach(function (n) { if (n > 0 && n !== res && pool.indexOf(n) < 0) pool.push(n); });
+      var nums = G.shuffle([res].concat(G.shuffle(pool).slice(0, 2)));
+      box.innerHTML =
+        '<div class="q">' +
+          '<div class="prompt">' + (mul ? "כמה זה?" : "כמה זה? (חילוק)") + '</div>' +
+          '<div class="eq"><div class="sign" style="font-size:clamp(40px,10vmin,84px);color:#fff;direction:ltr">' + text + '</div></div>' +
+          numOptsHTML(nums) +
+        '</div>';
+      G.choose(box, ".num", nums.indexOf(res), cb, function (i) { G.speak(String(nums[i])); });
     }
   };
 

@@ -28,7 +28,8 @@ window.CONFIG = {
     { id: "tia",   name: "טיה",   src: "family/tia.mp4",   icon: "🌟" },
     { id: "ari",   name: "ארי",   src: "family/ari.mp4",   icon: "🦁" },
     { id: "ilan",  name: "אילן",  src: "family/ilan.mp4",  icon: "🚀" },
-    { id: "itay",  name: "איתי",  src: "family/itay.mp4",  icon: "🥁" }
+    { id: "itay",  name: "איתי",  src: "family/itay.mp4",  icon: "🥁" },
+    { id: "atai",  name: "עתי",   src: "family/atai.mp4",  icon: "🦸" }
   ],
 
   mainStoryArt: {
@@ -88,7 +89,8 @@ familyHeroes: [
   { id: "emma",  name: "אמה",   icon: "🌟", title: "גיבורת על", type: "video", src: "family/emma.mp4" },
   { id: "ilan",  name: "אילן",  icon: "🔥", title: "גיבור על", type: "video", src: "family/ilan.mp4" },
   { id: "shai",  name: "שי",    icon: "🚀", title: "גיבור על", type: "video", src: "family/shai.mp4" },
-  { id: "tia",   name: "טיה",   icon: "💫", title: "גיבורת על", type: "video", src: "family/tia.mp4" }
+  { id: "tia",   name: "טיה",   icon: "💫", title: "גיבורת על", type: "video", src: "family/tia.mp4" },
+  { id: "atai",  name: "עתי",   icon: "🦸", title: "גיבור על", type: "video", src: "family/atai.mp4" }
 ],
 
   heroes: [
