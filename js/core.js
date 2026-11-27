@@ -10,6 +10,22 @@
   };
   G.rand = function (n) { return Math.floor(Math.random() * n); };
   G.pick = function (a) { return a[G.rand(a.length)]; };
+  /* חפיסה: מחזירה כל פריט פעם אחת לפני שחוזרים על פריט, וזוכרת גם בין ביקורים (localStorage) */
+  G.deck = function (key, list, idOf) {
+    idOf = idOf || String;
+    var K = "yh_deck_" + key, st;
+    try { st = JSON.parse(localStorage.getItem(K)) || {}; } catch (e) { st = {}; }
+    var seen = Array.isArray(st.seen) ? st.seen : [], last = st.last;
+    var rem = list.filter(function (x) { return seen.indexOf(idOf(x)) < 0; });
+    if (!rem.length) {
+      seen = [];
+      rem = list.filter(function (x) { return list.length < 2 || idOf(x) !== last; });
+    }
+    var x = rem[Math.floor(Math.random() * rem.length)];
+    seen.push(idOf(x));
+    try { localStorage.setItem(K, JSON.stringify({ seen: seen, last: idOf(x) })); } catch (e) {}
+    return x;
+  };
   G.shuffle = function (a) {
     a = a.slice();
     for (var i = a.length - 1; i > 0; i--) {
