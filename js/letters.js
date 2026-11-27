@@ -10,11 +10,8 @@
 
   window.Letters = {
     ask: function (box, step, cb) {
-      var item;
-      do { item = G.pick(LETTERS); } while (item.l === last);
-      last = item.l;
-
-      var right = G.pick(item.w);
+      var item = G.deck("letters", LETTERS, function (x) { return x.l; });
+      var right = G.deck("lw_" + item.l, item.w, function (x) { return x[0]; });
       var pool = [];
       LETTERS.forEach(function (L) {
         if (!similar(L.l, item.l)) L.w.forEach(function (w) { pool.push({ w: w, l: L.l }); });
