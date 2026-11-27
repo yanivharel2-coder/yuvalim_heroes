@@ -5,11 +5,9 @@
   window.Numbers = {
     ask: function (box, step, cb) {
       var max = step < 8 ? 5 : 10;
-      var n;
-      do { n = 1 + G.rand(max); } while (n === last && max > 1);
-      last = n;
-
-      var group = G.pick(DATA.countGroups);
+      var nl = []; for (var q = 1; q <= max; q++) nl.push(q);
+      var n = G.deck("num" + max, nl);
+      var group = G.deck("numgrp", DATA.countGroups, function (x) { return x.label; });
       var emoji = G.pick(group.e);
 
       var near = [];
