@@ -45,9 +45,7 @@
       if (!defaults) defaults = SCENES.map(makeDefault);
       list = defaults;
     }
-    if (cursor < 0) cursor = G.rand(list.length);
-    else cursor = (cursor + 1) % list.length;
-    return list[cursor % list.length];
+    return G.deck("puzzle", list, function (x) { return list.indexOf(x); });
   }
 
   /* mode: "hard" | "medium" | מספר בין 0 ל-1 (סיפור ראשי: 0 = 6 חלקים, 1 = המקסימום) */
