@@ -4,12 +4,7 @@
   var D = DATA;
   var last = {};
 
-  function fresh(key, list, idOf) {
-    var x, t = 0;
-    do { x = G.pick(list); t++; } while (last[key] !== undefined && idOf(x) === last[key] && t < 30);
-    last[key] = idOf(x);
-    return x;
-  }
+  function fresh(key, list, idOf) { return G.deck(key, list, idOf); }
   function optsHTML(items, withCap, cls) {
     return '<div class="opts ' + (cls || "") + '">' + items.map(function (it, i) {
       return '<button class="opt' + (withCap ? " capd" : "") + '" data-i="' + i + '"><span class="pic">' + it.e + '</span>' +
@@ -53,7 +48,7 @@
   window.Build = {
     ask: function (box, step, cb, level) {
       var hard = level === "hard";
-      var list = hard ? hardWords() : D.build.filter(function (w) { return step < 8 ? w[0].length === 2 : true; });
+      var list = hard ? hardWords() : D.build.filter(function (w) { return step < 8 ? w[0].length === 2 : w[0].length <= 3; });
       var item = fresh("build", list, function (x) { return x[0]; });
       var chars = normalize(item[0]);
       var baseSet = chars.map(function (c) { return BASE[c] || c; });
@@ -98,7 +93,10 @@
   /* ===== כפל וחילוק (מספרים עד 10) ===== */
   window.MulDiv = {
     ask: function (box, step, cb) {
-      var mul = Math.random() < 0.5, a = 2 + G.rand(9), b = 2 + G.rand(9), prod = a * b, res, text;
+      var combos = [];
+      for (var x = 2; x <= 10; x++) for (var y = 2; y <= 10; y++) { combos.push("m" + x + "_" + y); combos.push("d" + x + "_" + y); }
+      var cc = G.deck("muldiv", combos).split("_"), mul = cc[0].charAt(0) === "m";
+      var a = +cc[0].slice(1), b = +cc[1], prod = a * b, res, text;
       if (mul) { res = prod; text = a + " × " + b + " = ?"; }
       else { res = b; text = prod + " ÷ " + a + " = ?"; }
       var pool = [];
@@ -120,8 +118,9 @@
     ask: function (box, step, cb) {
       var sets = D.rhymeSets;
       var si = fresh("rhyme", sets.map(function (_, i) { return i; }), function (x) { return x; });
-      var set = G.shuffle(sets[si]);
-      var target = set[0], right = set[1];
+      var tgt0 = G.deck("rhymet" + si, sets[si], function (x) { return x[0]; });
+      var rest = G.shuffle(sets[si].filter(function (x) { return x !== tgt0; }));
+      var target = tgt0, right = rest[0];
       var otherIdx = [];
       sets.forEach(function (_, i) { if (i !== si) otherIdx.push(i); });
       var wrong = G.shuffle(otherIdx).slice(0, 2).map(function (i) { return G.pick(sets[i]); });
@@ -143,10 +142,12 @@
   /* ===== חיבור וחיסור בתמונות ===== */
   window.AddSub = {
     ask: function (box, step, cb) {
-      var max = step < 8 ? 5 : 10, add = Math.random() < 0.6, a, b, res;
-      if (add) { a = 1 + G.rand(max - 1); b = 1 + G.rand(max - a); res = a + b; }
-      else { a = 2 + G.rand(max - 1); b = 1 + G.rand(a - 1); res = a - b; }
-      var grp = G.pick(D.countGroups), emoji = G.pick(grp.e);
+      var max = step < 8 ? 5 : 10, a, b, res, cs = [];
+      for (var i1 = 1; i1 < max; i1++) for (var j1 = 1; i1 + j1 <= max; j1++) cs.push("a" + i1 + "_" + j1);
+      for (var i2 = 2; i2 <= max; i2++) for (var j2 = 1; j2 < i2; j2++) cs.push("s" + i2 + "_" + j2);
+      var pk = G.deck("addsub" + max, cs), add = pk.charAt(0) === "a";
+      a = +pk.slice(1).split("_")[0]; b = +pk.split("_")[1]; res = add ? a + b : a - b;
+      var grp = G.deck("addgrp", D.countGroups, function (x) { return x.label; }), emoji = G.pick(grp.e);
       var wrongPool = [];
       for (var k = 1; k <= max; k++) if (k !== res) wrongPool.push(k);
       var nums = G.shuffle([res].concat(G.shuffle(wrongPool).slice(0, 2)));
@@ -177,7 +178,7 @@
   window.Pattern = {
     ask: function (box, step, cb) {
       var types = step < 7 ? ["AB"] : step < 14 ? ["AB", "AAB", "ABB"] : ["ABC", "AAB", "ABB", "ABC"];
-      var unit = G.pick(types), theme = G.shuffle(G.pick(THEMES));
+      var unit = G.deck("patunit" + types.length, types), theme = G.shuffle(G.deck("pattheme", THEMES, function (x) { return x[0]; }));
       var map = { A: theme[0], B: theme[1], C: theme[2] };
       var L = 6, seq = [];
       for (var i = 0; i < L; i++) seq.push(map[unit[i % unit.length]]);
@@ -202,10 +203,11 @@
   window.MoreLess = {
     ask: function (box, step, cb) {
       var max = step < 8 ? 5 : 9;
-      var a = 1 + G.rand(max), b;
-      do { b = 1 + G.rand(max); } while (b === a);
+      var prs = [];
+      for (var u = 1; u <= max; u++) for (var v = 1; v <= max; v++) if (u !== v) prs.push(u + "_" + v);
+      var pr = G.deck("moreless" + max, prs).split("_"), a = +pr[0], b = +pr[1];
       var more = Math.random() < 0.65;
-      var grp = G.pick(D.countGroups);
+      var grp = G.deck("mlgrp", D.countGroups, function (x) { return x.label; });
       var e1 = G.pick(grp.e), e2 = G.pick(grp.e);
       var correct = more ? (a > b ? 0 : 1) : (a < b ? 0 : 1);
       box.innerHTML =
@@ -245,7 +247,27 @@
       R("rectangle", 114, 194, 26, 46, "#546e7a") + R("rectangle", 160, 194, 26, 46, "#546e7a"),
     /* משאית */
     T("56,70 96,70 76,36", "#ffca28") + R("rectangle", 30, 70, 130, 100, "#42a5f5") + R("square", 160, 100, 70, 70, "#ef5350") +
-      R("square", 176, 110, 34, 34, "#b3e5fc") + C(80, 180, 24, "#37474f") + C(190, 180, 24, "#37474f")
+      R("square", 176, 110, 34, 34, "#b3e5fc") + C(80, 180, 24, "#37474f") + C(190, 180, 24, "#37474f"),
+    /* ספינה */
+    R("rectangle", 147, 20, 6, 125, "#6d4c41") + T("150,30 150,140 80,140", "#fff59d") + T("158,50 158,140 230,140", "#ef5350") +
+      R("rectangle", 50, 146, 200, 44, "#8d6e63") + C(60, 60, 22, "#ffd54f") + C(230, 215, 10, "#81d4fa"),
+    /* גן */
+    T("20,230 85,150 150,230", "#90a4ae") + R("rectangle", 195, 120, 26, 110, "#8d6e63") + C(208, 88, 48, "#66bb6a") +
+      C(250, 36, 22, "#ffd54f") + C(60, 246, 12, "#f06292") + C(110, 246, 12, "#ba68c8"),
+    /* טירה */
+    R("rectangle", 148, 20, 4, 44, "#5d4037") + T("152,22 152,48 184,35", "#ef5350") + R("square", 80, 70, 34, 34, "#bcaaa4") +
+      R("square", 133, 70, 34, 34, "#bcaaa4") + R("square", 186, 70, 34, 34, "#bcaaa4") + R("rectangle", 80, 100, 140, 130, "#bcaaa4") +
+      R("rectangle", 130, 168, 40, 62, "#6d4c41") + C(108, 140, 12, "#81d4fa") + C(192, 140, 12, "#81d4fa"),
+    /* רכבת */
+    R("square", 50, 74, 34, 34, "#ffa726") + R("rectangle", 30, 108, 90, 70, "#ef5350") + R("rectangle", 125, 108, 90, 70, "#42a5f5") +
+      R("rectangle", 220, 108, 60, 70, "#66bb6a") + C(60, 188, 16, "#37474f") + C(100, 188, 16, "#37474f") + C(160, 188, 16, "#37474f") +
+      C(250, 188, 16, "#37474f") + C(250, 50, 22, "#ffd54f"),
+    /* מכונית */
+    R("rectangle", 130, 88, 80, 42, "#ef5350") + T("90,130 130,88 130,130", "#ef5350") + R("rectangle", 40, 130, 220, 50, "#ef5350") +
+      R("square", 148, 98, 26, 26, "#b3e5fc") + C(80, 188, 22, "#37474f") + C(220, 188, 22, "#37474f") + C(250, 50, 26, "#ffd54f"),
+    /* דג */
+    T("40,70 90,130 40,190", "#ffb300") + C(150, 130, 60, "#4fc3f7") + C(180, 112, 10, "#ffffff") + C(183, 112, 5, "#263238") +
+      T("120,70 150,30 170,72", "#0288d1") + C(60, 230, 8, "#b3e5fc") + C(255, 60, 12, "#b3e5fc")
   ];
   window.Shapes = {
     ask: function (box, step, cb) {
@@ -286,7 +308,7 @@
   window.Odd = {
     ask: function (box, step, cb) {
       var cats = D.oddCats;
-      var main = G.pick(cats);
+      var main = G.deck("odd", cats, function (x) { return x.e.join(""); });
       var other = G.pick(cats.filter(function (c) { return c.f !== main.f; }));
       var three = G.shuffle(main.e).slice(0, 3);
       var odd = G.pick(other.e);
